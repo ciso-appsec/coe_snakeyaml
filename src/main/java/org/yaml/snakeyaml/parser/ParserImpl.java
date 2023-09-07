@@ -235,6 +235,7 @@ public class ParserImpl implements Parser {
       // Parse an explicit document.
       Event event;
       if (!scanner.checkToken(Token.ID.StreamEnd)) {
+        scanner.resetDocumentIndex();
         Token token = scanner.peekToken();
         Mark startMark = token.getStartMark();
         VersionTagsTuple tuple = processDirectives();
@@ -284,7 +285,6 @@ public class ParserImpl implements Parser {
         endMark = token.getEndMark();
         explicit = true;
       }
-      scanner.resetDocumentIndex();
       Event event = new DocumentEndEvent(startMark, endMark, explicit);
       // Prepare the next state.
       state = new ParseDocumentStart();
@@ -340,7 +340,6 @@ public class ParserImpl implements Parser {
               "found incompatible YAML document (version 1.* is required)", token.getStartMark());
         }
         Integer minor = value.get(1);
-        // TODO refactor with ternary
         if (minor == 0) {
           directives = new VersionTagsTuple(Version.V1_0, tagHandles);
         } else {

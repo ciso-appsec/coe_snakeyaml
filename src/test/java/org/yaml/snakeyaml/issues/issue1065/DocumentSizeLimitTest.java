@@ -21,6 +21,7 @@ import java.util.Iterator;
 import org.junit.Test;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * https://bitbucket.org/snakeyaml/snakeyaml/issues/1065
@@ -31,50 +32,69 @@ public class DocumentSizeLimitTest {
    * The document start '---\n' is added to the first document
    */
   @Test
-  public void testLoadManyDocuments() {
+  public void testFirstLoadManyDocuments() {
     LoaderOptions options = new LoaderOptions();
     options.setCodePointLimit(8);
     Yaml yaml = new Yaml(options);
-    Iterator<Object> iter = yaml.loadAll("---\nfoo\n---\nbar\n").iterator();
-    assertEquals("foo", iter.next());
-    assertEquals("bar", iter.next());
-    assertFalse(iter.hasNext());
+    String doc = "---\nfoo\n---\nbar\n";
+    Iterator<Object> iter1 = yaml.loadAll(doc).iterator();
+    assertEquals("foo", iter1.next());
+    assertEquals("bar", iter1.next());
+    assertFalse(iter1.hasNext());
+    // exceed the limit
+    options.setCodePointLimit(8 - 1);
+    yaml = new Yaml(options);
+    Iterator<Object> iter2 = yaml.loadAll(doc).iterator();
+    assertEquals("foo", iter2.next());
+    try {
+      iter2.next();
+    } catch (YAMLException e) {
+      assertEquals("The incoming YAML document exceeds the limit: 4 code points.", e.getMessage());
+    }
   }
 
   /**
-   * TODO The document start '---\n' is not added to the non-first documents, only the \n is added.
+   * The document start '---\n' is added to the non-first documents.
    */
   @Test
-  public void testLoadManyDocuments2() {
+  public void testLastLoadManyDocuments() {
     LoaderOptions options = new LoaderOptions();
-    options.setCodePointLimit(5);
+    String secondDocument = "---\nbar\n";
+    int limit = secondDocument.length();
+    options.setCodePointLimit(limit);
     Yaml yaml = new Yaml(options);
-    Iterator<Object> iter = yaml.loadAll("foo\n---\nbar\n").iterator();
-    assertEquals("foo", iter.next());
-    assertEquals("bar", iter.next());
-    assertFalse(iter.hasNext());
+    String complete = "foo\n" + secondDocument;
+    Iterator<Object> iter1 = yaml.loadAll(complete).iterator();
+    assertEquals("foo", iter1.next());
+    assertEquals("bar", iter1.next());
+    assertFalse(iter1.hasNext());
+    // exceed the limit
+    options.setCodePointLimit(limit - 1);
+    yaml = new Yaml(options);
+    Iterator<Object> iter2 = yaml.loadAll(complete).iterator();
+    assertEquals("foo", iter2.next());
+    try {
+      iter2.next();
+    } catch (YAMLException e) {
+      assertEquals("The incoming YAML document exceeds the limit: 4 code points.", e.getMessage());
+    }
   }
 
   @Test
   public void testLoadDocuments() {
     String doc1 = "document: this is document one\n";
-    String doc2 = "document: this is document 2\n";
-    String doc3 = "document: this is document three\n";
-    String input = doc1 + "---\n" + doc2 + "---\n" + doc3;
+    String doc2 = "---\ndocument: this is document 2\n";
+    String docLongest = "---\ndocument: this is document three\n";
+    String input = doc1 + doc2 + docLongest;
 
     assertTrue("Test1. All should load, all docs are less than total input size.",
         dumpAllDocs(input, input.length()));
 
-    assertTrue("Test2. All should load, all docs are less than total input size - 1.",
-        dumpAllDocs(input, input.length() - 1));
+    assertTrue("Test2. All should load, all docs are less or equal to docLongest size.",
+        dumpAllDocs(input, docLongest.length()));
 
-    // TODO is should be without +4 (for ---\n)
-    assertTrue("Test3. All should load, all docs are less or equal to doc3 size.",
-        dumpAllDocs(input, doc3.length() + 1));
-
-    // TODO is should be with +3, to be 1 less than ---\n
-    assertFalse("Test4. Should fail to load at 3rd doc, it is longer than doc3 size -1.",
-        dumpAllDocs(input, doc3.length()));
+    assertFalse("Test3. Fail to load, doc2 is not the longest in the stream.",
+        dumpAllDocs(input, doc2.length()));
   }
 
   private boolean dumpAllDocs(String input, int codePointLimit) {

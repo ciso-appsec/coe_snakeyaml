@@ -5,7 +5,20 @@
         <title>YAML 1.1 parser and emitter</title>
     </properties>
     <body>
-        <release version="2.1" date="in GIT" description="Maintenance">
+        <release version="2.2" date="in GIT" description="Maintenance">
+            <action dev="asomov" type="update">
+                Define default scalar style as PLAIN (for polyglot Maven)
+            </action>
+            <action dev="asomov" type="update">
+                Add missing 'exports org.yaml.snakeyaml.inspector' to module-info.java
+                (thanks to Marius Hanl)
+            </action>
+        </release>
+        <release version="2.1" date="2023-08-04" description="Maintenance">
+            <action dev="asomov" type="fix" issue="1075">
+                Heavy Allocation in Emitter.analyzeScalar(String) due to Regex Overhead
+                (thanks to Carter Kozak)
+            </action>
             <action dev="asomov" type="fix" issue="1064">
                 Use identity in toString() for sequences to avoid OutOfMemoryError
                 (thanks to 郭逸帆)
@@ -16,7 +29,7 @@
                 %YAML 1.9224775801
                 (thanks to Tatu Saloranta)
             </action>
-            <action dev="asomov" type="fix">
+            <action dev="asomov" type="fix" issue="1065">
                 Document size limit should be applied to single document not the whole input stream
                 (thanks to Petr Gladkikh)
             </action>
