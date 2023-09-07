@@ -17,7 +17,7 @@
         <maven-bundle-plugin.version>5.1.8</maven-bundle-plugin.version>
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version><!-- for Github CI -->
         <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
-        <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version>
         <jdk11-illegal-access-level>deny</jdk11-illegal-access-level>
     </properties>
     <name>SnakeYAML</name>
